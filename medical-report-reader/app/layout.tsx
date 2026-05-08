@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "LabMate | AI Medical Reports",
   description: "Understand your medical reports in plain English.",
   manifest: "/manifest.json",
+};
+
+export const viewport = {
   themeColor: "#10b981",
 };
 
