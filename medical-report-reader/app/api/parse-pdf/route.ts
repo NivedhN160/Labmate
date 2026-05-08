@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+// @ts-expect-error - pdf-parse v1.1.1 does not have built-in types
 import pdfParse from "pdf-parse";
 import { Groq } from "groq-sdk";
 
