@@ -3,8 +3,16 @@
 import { motion } from "framer-motion";
 import { ArrowRight, FileText, Activity, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { getMockData } from "@/lib/mock";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleMock = () => {
+    localStorage.setItem("latestReport", JSON.stringify(getMockData()));
+    router.push("/report/mock");
+  };
   return (
     <div className="min-h-screen relative overflow-hidden bg-zinc-950 flex flex-col justify-center">
       {/* Background gradients */}
@@ -55,11 +63,10 @@ export default function Home() {
               Upload Report
             </button>
           </Link>
-          <Link href="#features">
-            <button className="w-full sm:w-auto px-8 py-4 rounded-xl glass text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-              See How It Works
-            </button>
-          </Link>
+          <button onClick={handleMock} className="w-full sm:w-auto px-8 py-4 rounded-xl glass text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+            <FileText className="w-5 h-5" />
+            View Sample Report
+          </button>
         </motion.div>
 
         {/* Feature Highlights */}

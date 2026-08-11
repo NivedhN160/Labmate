@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LabMate | AI Medical Reports",
+  title: "Labmate · Lab Report Reader",
   description: "Understand your medical reports in plain English.",
   manifest: "/manifest.json",
 };

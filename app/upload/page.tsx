@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Upload, File, X, AlertCircle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import { Upload, File, X, AlertCircle, CheckCircle2, Loader2, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getMockData } from "@/lib/mock";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,6 +14,11 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  const handleMock = () => {
+    localStorage.setItem("latestReport", JSON.stringify(getMockData()));
+    router.push("/report/mock");
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -186,9 +192,16 @@ export default function UploadPage() {
           </motion.div>
         )}
         
-        <p className="text-center text-xs text-zinc-500 mt-8 mt-12 px-8">
+        <p className="text-center text-xs text-zinc-500 mt-12 px-8">
           <strong>Disclaimer:</strong> This tool provides general educational information and is not medical advice. Always consult a qualified healthcare provider for medical diagnosis and treatment.
         </p>
+        
+        <div className="mt-8 flex justify-center">
+          <button onClick={handleMock} className="text-emerald-400 hover:text-emerald-300 text-sm font-medium flex items-center gap-2 transition-colors">
+            <FileText className="w-4 h-4" />
+            Try a Sample Report Instead
+          </button>
+        </div>
       </motion.div>
     </div>
   );

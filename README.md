@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Labmate · Lab Report Reader
+
+Labmate is an AI-powered medical report reader that extracts key metrics from your lab reports and explains them in simple, plain English with natural lifestyle recommendations.
+
+🔗 **[Live Demo](https://medial-report-reader.vercel.app/)** *(Update with actual live URL if different)*
+
+> **⚠️ Disclaimer:** This tool provides general educational information based on AI analysis. It is not medical advice, diagnosis, or treatment. Always consult a qualified doctor before making any health decisions.
+
+## Features
+
+- **Upload PDF:** Securely upload your blood tests, lipid panels, or other medical reports.
+- **Extract Text:** Automatically extracts text from the PDF (Note: PDF must be text-searchable. Scanned images without OCR will not work).
+- **Groq Structured Extraction:** Uses Llama 3.3 via Groq to parse the text and structure the data.
+- **Report UI:** Beautiful, easy-to-read interface showing status (high/low/normal) and lifestyle-only suggestions.
+
+## Tech Stack
+
+| Technology | Description |
+|------------|-------------|
+| **Next.js 16** | React framework (App Router) |
+| **pdf-parse** | Extracts text from PDF files |
+| **Groq Llama 3.3** | Blazing fast AI inference for structured extraction |
+| **Tailwind CSS** | Utility-first styling |
+| **Recharts** | For potential future data visualization |
+| **Framer Motion** | UI animations |
 
 ## Getting Started
 
-First, run the development server:
+### Local Run
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up your environment variables by copying the example file and adding your Groq API key:
+   ```bash
+   cp .env.example .env.local
+   ```
+   *Note: Without a valid `GROQ_API_KEY`, the application will return **mock data** for testing the UI.*
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application follows a simple flow:
+1. `upload` -> User uploads a PDF.
+2. `POST /api/parse-pdf` -> The backend parses the PDF text (using `pdfText.substring(0, 10000)` to stay within AI context limits) and sends it to the Groq API for structured extraction.
+3. `report/[id]` -> The structured data is presented to the user.
