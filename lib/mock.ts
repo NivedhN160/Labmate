@@ -9,6 +9,7 @@ export function getMockData(): ReportData {
       name: "John Doe",
       date: "May 8, 2026"
     },
+    rawText: "Mock raw text: Hemoglobin 14.2 g/dL, LDL Cholesterol 155 mg/dL, Vitamin D 18 ng/mL.",
     results: [
       {
         testName: "Hemoglobin",

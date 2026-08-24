@@ -65,6 +65,7 @@ export async function analyzeLabReport(pdfText: string): Promise<ReportData> {
       return {
         id: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
+        rawText: pdfText,
         ...validated,
       } as ReportData;
     } catch (err: any) {
@@ -88,6 +89,7 @@ export async function analyzeLabReport(pdfText: string): Promise<ReportData> {
         return {
           id: crypto.randomUUID(),
           timestamp: new Date().toISOString(),
+          rawText: pdfText,
           ...validated,
         } as ReportData;
       } catch (retryErr: any) {

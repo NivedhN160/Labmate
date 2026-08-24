@@ -9,6 +9,7 @@ import { ReportData } from "@/lib/types";
 import { getLatestReport } from "@/lib/storage";
 import { SummaryStats } from "@/components/SummaryStats";
 import { ReportCard } from "@/components/ReportCard";
+import { ChatBox } from "@/components/ChatBox";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export default function ReportPage() {
@@ -91,6 +92,11 @@ export default function ReportPage() {
           {data.results.map((result, idx) => (
             <ReportCard key={idx} result={result} index={idx} />
           ))}
+        </div>
+
+        <div className="mt-16 space-y-6">
+          <h2 className="text-2xl font-semibold mb-6">Ask about your report</h2>
+          <ChatBox reportData={data} />
         </div>
       </main>
 

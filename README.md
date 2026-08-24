@@ -10,7 +10,7 @@ Labmate is an AI-powered medical report reader that extracts key metrics from yo
 
 - **Upload PDF:** Securely upload your blood tests, lipid panels, or other medical reports.
 - **Extract Text:** Automatically extracts text from the PDF (Note: PDF must be text-searchable. Scanned images without OCR will not work).
-- **Groq Structured Extraction:** Uses Llama 3.3 via Groq to parse the text and structure the data.
+- **Groq Structured Extraction:** Uses open-source models via Groq (like Llama 3.1 and GPT-OSS) to parse the text and structure the data.
 - **Report UI:** Beautiful, easy-to-read interface showing status (high/low/normal) and lifestyle-only suggestions.
 
 ## Tech Stack
@@ -19,7 +19,7 @@ Labmate is an AI-powered medical report reader that extracts key metrics from yo
 |------------|-------------|
 | **Next.js 16** | React framework (App Router) |
 | **pdf-parse** | Extracts text from PDF files |
-| **Groq Llama 3.3** | Blazing fast AI inference for structured extraction |
+| **Groq AI** | Blazing fast AI inference for structured extraction (using Llama 3.1 / GPT-OSS) |
 | **Tailwind CSS** | Utility-first styling |
 | **Recharts** | For potential future data visualization |
 | **Framer Motion** | UI animations |

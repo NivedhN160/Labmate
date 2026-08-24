@@ -20,4 +20,5 @@ export interface ReportData {
     date: string;
   };
   results: TestResult[];
+  rawText?: string;
 }
