@@ -6,9 +6,9 @@ import { ReportData } from "./types";
 
 // Model fallback chain — all free tier, no charges
 const MODELS = [
-  "openai/gpt-oss-20b",   // fast + good enough
-  "openai/gpt-oss-120b",  // better quality
-  "qwen/qwen3-32b",       // strong fallback
+  "openai/gpt-oss-20b",      // fast + good enough
+  "openai/gpt-oss-120b",     // better quality
+  "llama-3.1-8b-instant",    // reliable Groq fallback
 ];
 
 function cleanJSON(raw: string): string {
@@ -34,6 +34,7 @@ async function callModel(groq: Groq, model: string, pdfText: string): Promise<st
     messages: [{ role: "user", content: prompt }],
     model,
     temperature: 0.1,
+    max_tokens: 8192, // prevent truncated JSON
   });
   return completion.choices[0]?.message?.content ?? "{}";
 }
