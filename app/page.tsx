@@ -1,16 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, FileText, Activity, ShieldCheck, Upload } from "lucide-react";
+import { ArrowRight, FileText, Activity, ShieldCheck, Upload, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getMockData } from "@/lib/mock";
+import { saveReport } from "@/lib/storage";
 
 export default function Home() {
   const router = useRouter();
 
   const handleMock = () => {
-    localStorage.setItem("latestReport", JSON.stringify(getMockData()));
+    const mock = getMockData();
+    saveReport(mock);
     router.push("/report/mock");
   };
   return (
@@ -67,6 +69,12 @@ export default function Home() {
             <FileText className="w-5 h-5" />
             View Sample Report
           </button>
+          <Link href="/history">
+            <button className="w-full sm:w-auto px-8 py-4 rounded-xl glass text-zinc-400 hover:text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+              <Clock className="w-5 h-5" />
+              History
+            </button>
+          </Link>
         </motion.div>
 
         {/* Feature Highlights */}

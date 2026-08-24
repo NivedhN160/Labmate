@@ -1,41 +1,42 @@
-export function getAnalysisPrompt(pdfText: string) {
-  return `
-You are an expert medical data extractor and health assistant.
-Analyze the following text extracted from a medical report.
+export function getAnalysisPrompt(pdfText: string): string {
+  return `You are an expert medical data extractor and health assistant.
+Analyze the text extracted from a lab report and return ONLY valid JSON — no markdown, no explanation.
 
-Extract all the key tests and their values. For each test, provide:
-1. "testName": The name of the test
-2. "value": The numerical or string value
-3. "unit": The unit of measurement (if any)
-4. "referenceRange": The normal reference range (if any)
-5. "status": Determine if it is "normal", "high", or "low" based on the reference range
-6. "explanation": A plain-english explanation of what this test means
-7. "whyAbnormal": If status is "high" or "low", explain common natural/lifestyle causes. Otherwise, leave empty.
-8. "suggestions": If status is "high" or "low", provide specific natural lifestyle/dietary advice (NO medications). Otherwise, provide general wellness tips related to this test.
-
-Also, determine the "reportType" (e.g., "Complete Blood Count", "Lipid Panel", etc.).
-Return ONLY valid JSON in the following format, with no markdown code blocks wrapping it:
+Schema (strict):
 {
-  "reportType": "Report Type",
-  "patientInfo": {
-    "name": "Extracted or Unknown",
-    "date": "Extracted or Unknown"
-  },
+  "reportType": string,
+  "patientInfo": { "name": string, "date": string },
   "results": [
     {
-      "testName": "Hemoglobin",
-      "value": "11.2",
-      "unit": "g/dL",
-      "referenceRange": "12.0 - 15.5",
-      "status": "low",
-      "explanation": "Protein in red blood cells that carries oxygen.",
-      "whyAbnormal": "Low levels can indicate anemia, often due to iron deficiency or poor diet.",
-      "suggestions": ["Eat iron-rich foods like spinach and red meat", "Take vitamin C to boost iron absorption"]
+      "testName": string,
+      "value": string,
+      "unit": string,
+      "referenceRange": string,
+      "status": "normal" | "high" | "low",
+      "explanation": string,
+      "whyAbnormal": string,       // empty string if status is "normal"
+      "suggestions": string[]      // lifestyle/dietary only, NO medications
     }
   ]
 }
 
-Medical Report Text:
-${pdfText.substring(0, 10000)}
-`;
+Few-shot examples of how lab report text maps to JSON:
+
+Example A (input fragment):
+  Haemoglobin: 11.2 g/dL (ref 13.8-17.2)
+→ { "testName": "Haemoglobin", "value": "11.2", "unit": "g/dL", "referenceRange": "13.8 - 17.2", "status": "low", "explanation": "Haemoglobin carries oxygen in red blood cells.", "whyAbnormal": "Low haemoglobin can result from iron-deficiency anaemia, poor diet, or blood loss.", "suggestions": ["Eat iron-rich foods like lentils and spinach", "Add vitamin C to meals to boost iron absorption", "Avoid tea/coffee right after meals"] }
+
+Example B (input fragment):
+  Fasting Blood Sugar: 92 mg/dL (ref 70-100)
+→ { "testName": "Fasting Blood Sugar", "value": "92", "unit": "mg/dL", "referenceRange": "70 - 100", "status": "normal", "explanation": "Measures blood glucose after a period of fasting.", "whyAbnormal": "", "suggestions": ["Maintain a balanced diet low in refined sugars", "Exercise regularly to keep blood sugar stable"] }
+
+Rules:
+- Use the reference range from the report to determine status. If no range is given, use standard clinical norms.
+- Suggestions must be lifestyle/dietary ONLY — never recommend medications.
+- whyAbnormal must be empty string ("") when status is "normal".
+- Return ALL tests found in the report.
+- Use at most ${pdfText.substring(0, 10000).length} characters of report text (already capped).
+
+Lab report text:
+${pdfText.substring(0, 10000)}`;
 }

@@ -2,10 +2,13 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Upload, File, X, AlertCircle, CheckCircle2, Loader2, ArrowRight, FileText } from "lucide-react";
+import { Upload, File, X, AlertCircle, CheckCircle2, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getMockData } from "@/lib/mock";
+import { saveReport } from "@/lib/storage";
+import { LoadingAnalysis } from "@/components/LoadingAnalysis";
+import { Disclaimer } from "@/components/Disclaimer";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,7 +19,8 @@ export default function UploadPage() {
   const router = useRouter();
 
   const handleMock = () => {
-    localStorage.setItem("latestReport", JSON.stringify(getMockData()));
+    const mock = getMockData();
+    saveReport(mock);
     router.push("/report/mock");
   };
 
@@ -25,9 +29,7 @@ export default function UploadPage() {
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
+  const handleDragLeave = () => setIsDragging(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -37,9 +39,7 @@ export default function UploadPage() {
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      validateAndSetFile(e.target.files[0]);
-    }
+    if (e.target.files?.[0]) validateAndSetFile(e.target.files[0]);
   };
 
   const validateAndSetFile = (selectedFile: File) => {
@@ -57,7 +57,6 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     if (!file) return;
-
     setIsUploading(true);
     setError(null);
 
@@ -70,17 +69,15 @@ export default function UploadPage() {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to process the report. Please try again.");
+        // Surface the specific error from the API (e.g. scanned PDF)
+        throw new Error(data.error || "Failed to process the report. Please try again.");
       }
 
-      const data = await response.json();
-      
-      // Navigate to results page with ID or just pass data via state/context
-      // For MVP, if we save it to localStorage or similar, we can redirect
-      localStorage.setItem("latestReport", JSON.stringify(data));
-      router.push("/report/latest");
-
+      saveReport(data);
+      router.push(`/report/${data.id}`);
     } catch (err: any) {
       setError(err.message || "An error occurred during upload.");
     } finally {
@@ -88,14 +85,34 @@ export default function UploadPage() {
     }
   };
 
+  if (isUploading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-6">
+        <div className="w-full max-w-md">
+          <LoadingAnalysis />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 pt-24 pb-12 px-6 flex flex-col items-center">
       {/* Background glow */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
 
-      <Link href="/" className="absolute top-8 left-8 text-zinc-400 hover:text-white transition-colors flex items-center gap-2">
+      <Link
+        href="/"
+        className="absolute top-8 left-8 text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
+      >
         <ArrowRight className="w-4 h-4 rotate-180" />
         Back to Home
+      </Link>
+
+      <Link
+        href="/history"
+        className="absolute top-8 right-8 text-zinc-400 hover:text-white transition-colors text-sm"
+      >
+        History →
       </Link>
 
       <motion.div
@@ -104,7 +121,10 @@ export default function UploadPage() {
         className="max-w-2xl w-full text-center mb-12 relative z-10"
       >
         <h1 className="text-4xl font-bold text-white mb-4">Upload Your Report</h1>
-        <p className="text-zinc-400">Securely upload your medical report PDF. Your data is processed locally and never shared with third parties.</p>
+        <p className="text-zinc-400">
+          Securely upload your medical report PDF. Your data is processed locally and never shared
+          with third parties.
+        </p>
       </motion.div>
 
       <motion.div
@@ -139,8 +159,12 @@ export default function UploadPage() {
               <h3 className="text-xl font-semibold text-white mb-2">Drag & Drop your PDF</h3>
               <p className="text-zinc-400 text-sm mb-6">or click to browse from your device</p>
               <div className="flex items-center gap-4 text-xs text-zinc-500">
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Max 10MB</span>
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> PDF format</span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Max 10MB
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Text-based PDF only
+                </span>
               </div>
             </>
           ) : (
@@ -149,8 +173,9 @@ export default function UploadPage() {
                 <File className="w-8 h-8" />
               </div>
               <p className="text-white font-medium mb-1 truncate max-w-[80%]">{file.name}</p>
-              <p className="text-zinc-500 text-sm mb-6">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              
+              <p className="text-zinc-500 text-sm mb-6">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </p>
               <div className="flex gap-4">
                 <button
                   onClick={(e) => {
@@ -158,7 +183,6 @@ export default function UploadPage() {
                     setFile(null);
                   }}
                   className="px-4 py-2 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 transition-colors flex items-center gap-2 text-sm"
-                  disabled={isUploading}
                 >
                   <X className="w-4 h-4" /> Remove
                 </button>
@@ -167,14 +191,9 @@ export default function UploadPage() {
                     e.stopPropagation();
                     handleUpload();
                   }}
-                  className="px-6 py-2 rounded-lg bg-emerald-500 text-zinc-950 font-semibold hover:bg-emerald-400 transition-colors flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isUploading}
+                  className="px-6 py-2 rounded-lg bg-emerald-500 text-zinc-950 font-semibold hover:bg-emerald-400 transition-colors flex items-center gap-2 text-sm"
                 >
-                  {isUploading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
-                  ) : (
-                    <>Analyze Report <ArrowRight className="w-4 h-4" /></>
-                  )}
+                  Analyze Report <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -191,17 +210,18 @@ export default function UploadPage() {
             <p className="text-sm">{error}</p>
           </motion.div>
         )}
-        
-        <p className="text-center text-xs text-zinc-500 mt-12 px-8">
-          <strong>Disclaimer:</strong> This tool provides general educational information and is not medical advice. Always consult a qualified healthcare provider for medical diagnosis and treatment.
-        </p>
-        
+
         <div className="mt-8 flex justify-center">
-          <button onClick={handleMock} className="text-emerald-400 hover:text-emerald-300 text-sm font-medium flex items-center gap-2 transition-colors">
+          <button
+            onClick={handleMock}
+            className="text-emerald-400 hover:text-emerald-300 text-sm font-medium flex items-center gap-2 transition-colors"
+          >
             <FileText className="w-4 h-4" />
             Try a Sample Report Instead
           </button>
         </div>
+
+        <Disclaimer className="mt-10" />
       </motion.div>
     </div>
   );
