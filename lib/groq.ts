@@ -37,7 +37,7 @@ async function callModel(groq: Groq, model: string, pdfText: string): Promise<st
     messages: [{ role: "user", content: prompt }],
     model,
     temperature: 0.1,
-    max_tokens: 8192, // prevent truncated JSON
+    max_tokens: 4000, // Reduced to fit within 8000 TPM (Input Tokens + max_tokens)
   });
   return completion.choices[0]?.message?.content ?? "{}";
 }

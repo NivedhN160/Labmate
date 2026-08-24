@@ -67,7 +67,7 @@ ${rawText?.substring(0, 10000) || "No raw text available."}
           messages: messages as any,
           model,
           temperature: 0.2,
-          max_tokens: 2048,
+          max_tokens: 2000,
         });
 
         const reply = completion.choices[0]?.message?.content || "";
