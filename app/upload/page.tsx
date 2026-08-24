@@ -69,12 +69,12 @@ export default function UploadPage() {
         body: formData,
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        // Surface the specific error from the API (e.g. scanned PDF)
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.error || "Failed to process the report. Please try again.");
       }
+
+      const data = await response.json();
 
       saveReport(data);
       router.push(`/report/${data.id}`);
@@ -207,7 +207,10 @@ export default function UploadPage() {
             className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 text-red-400"
           >
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-            <p className="text-sm">{error}</p>
+            <div>
+              <p className="text-sm font-medium">Analysis failed</p>
+              <p className="text-sm mt-1 opacity-90">{error}</p>
+            </div>
           </motion.div>
         )}
 
