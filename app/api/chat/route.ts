@@ -4,7 +4,8 @@ import { Groq } from "groq-sdk";
 const MODELS = [
   "openai/gpt-oss-20b",
   "openai/gpt-oss-120b",
-  "llama-3.1-8b-instant",
+  "qwen/qwen3.6-27b",
+  "groq/compound-mini",
 ];
 
 function isModelError(err: any): boolean {
@@ -74,6 +75,20 @@ ${rawText?.substring(0, 10000) || "No raw text available."}
       } catch (err: any) {
         lastError = err;
         console.error(`Chat API - Model ${model} failed:`, err?.message);
+
+        const errorMessage = err?.message ?? "";
+        if (
+          errorMessage.includes("Request too large") ||
+          errorMessage.includes("tokens per minute") ||
+          errorMessage.includes("rate_limit_exceeded") ||
+          err?.status === 413
+        ) {
+          return NextResponse.json(
+            { error: "The lab report is too long for free analysis. Please try again later." },
+            { status: 413 }
+          );
+        }
+
         if (isModelError(err)) {
           continue;
         }

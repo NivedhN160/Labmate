@@ -6,9 +6,10 @@ import { ReportData } from "./types";
 
 // Model fallback chain — all free tier, no charges
 const MODELS = [
-  "openai/gpt-oss-20b",      // fast + good enough
-  "openai/gpt-oss-120b",     // better quality
-  "llama-3.1-8b-instant",    // reliable Groq fallback
+  "openai/gpt-oss-20b",        // fast
+  "openai/gpt-oss-120b",       // better quality
+  "qwen/qwen3.6-27b",          // good alternative
+  "groq/compound-mini",        // higher TPM limit (70k)
 ];
 
 function cleanJSON(raw: string): string {
@@ -29,7 +30,9 @@ function isModelError(err: any): boolean {
 }
 
 async function callModel(groq: Groq, model: string, pdfText: string): Promise<string> {
-  const prompt = getAnalysisPrompt(pdfText);
+  const MAX_PDF_CHARS = 5500;
+  const truncatedText = pdfText.slice(0, MAX_PDF_CHARS);
+  const prompt = getAnalysisPrompt(truncatedText);
   const completion = await groq.chat.completions.create({
     messages: [{ role: "user", content: prompt }],
     model,
@@ -71,6 +74,18 @@ export async function analyzeLabReport(pdfText: string): Promise<ReportData> {
     } catch (err: any) {
       lastError = err;
       console.error(`Model ${model} failed:`, err?.message ?? err);
+
+      const errorMessage = err?.message ?? "";
+      if (
+        errorMessage.includes("Request too large") ||
+        errorMessage.includes("tokens per minute") ||
+        errorMessage.includes("rate_limit_exceeded") ||
+        err?.status === 413
+      ) {
+        throw new Error(
+          "The lab report is too long for free analysis. Please upload a shorter report or try again later."
+        );
+      }
 
       if (isModelError(err)) {
         // Model unavailable — try next in chain
