@@ -9,7 +9,7 @@ const pwa = withPWA({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // your existing config if any
+  serverExternalPackages: ["pdf-parse"],
 };
 
 export default pwa(nextConfig);
