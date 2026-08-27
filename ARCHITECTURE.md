@@ -27,10 +27,15 @@ sequenceDiagram
     C->>C: Save to localStorage
     C-->>U: Display Visual Report & Chat UI
     
-    note over U, LLM: Interactive Chat Phase
+    note over U, LLM: Interactive Chat Phase (Local RAG)
     U->>C: Ask question in Chat
     C->>Chat: POST Question + Context (JSON + Text)
-    Chat->>LLM: Request completion (System Prompt + History)
+    
+    note over Chat: Retrieval-Augmented Generation
+    Chat->>Chat: Chunk raw text
+    Chat->>Chat: Embed chunks & question (@xenova/transformers)
+    Chat->>Chat: Vector Search (Cosine Similarity)
+    Chat->>LLM: Request completion (Retrieved Context + System Prompt)
     LLM-->>Chat: Return Answer
     Chat-->>C: Return Answer
     C-->>U: Display Answer in ChatBox
@@ -44,8 +49,12 @@ sequenceDiagram
    - Uses `localStorage` to cache reports so users can access history without a database.
    
 2. **Backend (Next.js API Routes):**
-   - `/api/parse-pdf`: Handles file uploads (up to 10MB), uses `pdf-parse` (externalized via `serverExternalPackages`), and invokes the LLM.
-   - `/api/chat`: A stateless endpoint that takes the report context and user query, formats a strict lifestyle-only system prompt, and returns a safe response.
+   - `/api/parse-pdf`: Handles file uploads (up to 10MB), uses `pdf-parse` (externalized via `serverExternalPackages`), and invokes the LLM for structured extraction.
+   - `/api/chat`: Implements a fully free Local RAG (Retrieval-Augmented Generation) pipeline.
+     - **Chunking:** Safely slices raw PDF text into overlapping chunks.
+     - **Embedding:** Uses `@xenova/transformers` (`all-MiniLM-L6-v2`) in Node.js to embed chunks.
+     - **Vector Search:** Performs in-memory cosine similarity to find the top 4 chunks relevant to the user's question.
+     - **Generation:** Sends only the retrieved context to Groq to keep TPM low.
 
 3. **AI Fallback Chain (`lib/groq.ts`):**
    - Automatically handles Groq API rate limits (like TPM/RPM limits) and decommissioned models.

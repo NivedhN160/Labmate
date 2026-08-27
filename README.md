@@ -54,4 +54,4 @@ The application follows a simple edge-compatible flow. For a detailed breakdown 
 1. `upload` -> User uploads a PDF.
 2. `POST /api/parse-pdf` -> The backend parses the PDF text locally, truncates it to fit token limits, and sends it to the Groq API for structured extraction.
 3. `report/[id]` -> The structured data is presented to the user on a visual dashboard, saved to localStorage.
-4. `POST /api/chat` -> The user can ask questions; the context (raw text + JSON) is passed to the AI for a secure, lifestyle-focused response.
+4. `POST /api/chat` -> **(Local RAG)** The backend dynamically chunks the report text, embeds it using `@xenova/transformers` (`all-MiniLM-L6-v2`), and performs an in-memory vector search to retrieve relevant snippets before calling the AI.
