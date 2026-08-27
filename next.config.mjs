@@ -9,7 +9,7 @@ const pwa = withPWA({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: ["pdf-parse", "@xenova/transformers", "onnxruntime-node"],
 };
 
 export default pwa(nextConfig);

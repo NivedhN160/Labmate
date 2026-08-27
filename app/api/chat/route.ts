@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { Groq } from "groq-sdk";
+import { retrieveRelevantChunks } from "@/lib/rag/retriever";
+import { getRagChatPrompt } from "@/lib/prompt";
 
 const MODELS = [
   "openai/gpt-oss-20b",
@@ -33,28 +35,21 @@ export async function POST(request: Request) {
 
     const groq = new Groq({ apiKey });
 
+    // Build context with RAG
+    let relevantChunks: string[] = [];
+    if (rawText) {
+      relevantChunks = await retrieveRelevantChunks(rawText, question, 4);
+    }
+    
+    // Combine structured results string as a base chunk
+    const structuredContext = `Structured Results:\n${JSON.stringify(structuredResults)}`;
+    relevantChunks.push(structuredContext);
+
     // Build the system prompt
-    const systemPrompt = `You are a helpful AI health assistant for 'Labmate'.
-You are analyzing a patient's lab report.
-Answer their questions about their results in plain, easy-to-understand English.
-
-CRITICAL RULES:
-1. ONLY provide lifestyle, diet, exercise, or sleep recommendations.
-2. NEVER recommend medications, supplements, or specific treatments.
-3. ALWAYS remind the user to consult a doctor for medical advice.
-4. Base your answers on the provided lab report text and structured data.
-5. Keep answers concise, empathetic and friendly.`;
-
-    const dataContext = `
---- LAB REPORT DATA ---
-Structured Results: ${JSON.stringify(structuredResults)}
-Extracted Text:
-${rawText?.substring(0, 10000) || "No raw text available."}
------------------------`;
+    const systemPrompt = getRagChatPrompt(relevantChunks, question);
 
     const messages = [
       { role: "system", content: systemPrompt },
-      { role: "system", content: dataContext },
       ...(history || []),
       { role: "user", content: question },
     ];
