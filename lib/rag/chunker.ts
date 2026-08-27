@@ -26,7 +26,10 @@ export function chunkText(text: string, chunkSize = 400, overlap = 80): string[]
     }
     
     chunks.push(cleanText.substring(i, end).trim());
-    i = end - overlap;
+    
+    // Ensure we always move forward
+    const nextI = end - overlap;
+    i = nextI > i ? nextI : end;
   }
   
   return chunks;
